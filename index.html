@@ -1,45 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>正六边形</title>
-	<meta charset="utf-8">
-</head>
-<body>
-	<canvas id="canvas" width="400" height="400"></canvas>
-</body>
-<script type="text/javascript">
-	var canvas = document.querySelector('#canvas'),
-		context = canvas.getContext('2d');
- 
- 
-	// 定义边长、颜色、边数、canvas大小
-	var length = 100, fillColor = '#000', vertices = 6, size = 1000;
-	canvas.width = size;
-	canvas.height = size;
- 
-	var getDegree = function(vertices, i) {
-		return 360 / vertices * (i + 0.5) + 90;
-	}
- 
-	var getRadian = function(degree) {
-	    return degree * Math.PI / 180;
-	};
-	// var arr = [0, 2]
-    context.beginPath();
-    for (var i = 0; i < vertices; i++) {
-    	// 计算偏转
-    	var degree = getDegree(vertices, i)
-    		var radian = getRadian(degree);
- // JQ的那个动画只会走两种方向 - 60°或120°
-    	// 增加1/3的canvas大小位移量以免被边缘挡住
-        var x = Math.cos(radian) * length + size / 3;
-        var y = Math.sin(radian) * length + size / 3 ;
-        context.lineTo(x, y);
-    }
-    context.closePath();
-    context.stroke();
-</script>
-</html>
+
 
 <!DOCTYPE html>
 <html lang="en">
