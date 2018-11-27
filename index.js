@@ -3,11 +3,8 @@ window['$Hexagon'] = class $Hexagon {
         this.$ = el => (document.getElementById(el))
         this.$class = el => (document.getElementsByClassName(el))
         this.data = {
-            el: this.$(props.el),
-            raf_arr: []
+            el: this.$(props.el)
         }
-        this.raf = requestAnimationFrame || mozRequestAnimationFrame || webkitRequestAnimationFrame || msRequestAnimationFrame
-        this.clearRaf = cancelAnimationFrame
         this.init()
     }
     check() {
@@ -36,15 +33,18 @@ window['$Hexagon'] = class $Hexagon {
             centerY: el.height / 2,
             X: el.width,
             Y: el.height,
+            num: 20, // 单条线默认动20次
             line_l: 20, // 直线长度
+            line_w: 1, // 直线粗细
             angle: '60', // 角度
+            line_c: 'round', // 直线更圆润
             pos: { // 角度
                 '60': {
                     sin: Math.sqrt(3) / 2,
                     cos: 0.5
                 }
             },
-            avg: 10, // now到next的执行次数
+            avg: 12, // now到next的执行次数
             coor: { // 方向 - 坐标系四域
                 '1': e => ({ x: e.x + e.xl, y: e.y - e.yl, next: ['2', '1-4-x'] }),
                 '2': e => ({ x: e.x - e.xl, y: e.y - e.yl, next: ['1', '2-3-x'] }),
@@ -97,17 +97,36 @@ window['$Hexagon'] = class $Hexagon {
         })
         return arr
     }
+    getColorAvg (e) { // 计算渐变
+        const {
+            num,
+            avg
+        } = this.data
+        const arrF = (str) => (str.replace('rgba(', '')
+        .replace('rgb(', '')
+        .replace(')', '')
+        .split(','))
+        let s_arr = arrF(e.s)
+        let e_arr = arrF(e.e)
+        
+    }
     drawLine (e) { // 画线
         const {
-            cxt
+            cxt,
+            line_c,
+            line_w
         } = this.data
         const {
             now,
             next
         } = e
         let color = '#ffffff'
-        let line_w = 3
-        let line_c = 'round' // 直线圆润
+        
+        
+        // cxt.shadowOffsetX = 1; // 阴影Y轴偏移
+        // cxt.shadowOffsetY = 1; // 阴影X轴偏移
+        // cxt.shadowBlur = 1; // 模糊尺寸
+        // cxt.shadowColor = 'rgba(255, 255, 255, 0.5)'; // 颜色
 
         cxt.strokeStyle = color
         cxt.lineWidth = line_w
@@ -116,30 +135,29 @@ window['$Hexagon'] = class $Hexagon {
         cxt.lineTo(next.x, next.y)
         cxt.stroke()
     }
-    animation () { // 动画
+    animation ({ index = 0, now, colorS = 'rgba(30, 242, 40, 1)', colorE = 'rgb(30, 53, 242, 1)' } = {}) { // 动画
         const {
             centerX,
             centerY,
             avg,
+            num,
             line_l
         } = this.data
-        let now = {
-            x: centerX - line_l * 2,
-            y: centerY
+        if (!now || !now.x) {
+            now = {
+                x: centerX - line_l * 2,
+                y: centerY
+            }
         }
         let next = this.getEndXY(now) // 取得next坐标
         let avg_arr = this.getAvg(now, next) // 取得次数
+        let avg_color = this.getColorAvg({
+            s: colorS,
+            e: colorE,
+            i: index
+        })
+        debugger
         let i = 0
-        // let raf = this.setInterval(() => {
-        //     this.drawLine({
-        //         now: now,
-        //         next: avg_arr[i]
-        //     })
-        //     if (avg_arr[i].i === avg -1) {
-        //         this.clearInterval(raf)
-        //     }
-        //     i++
-        // })
         let fn = () => {
             this.drawLine({
                 now: now,
@@ -147,39 +165,19 @@ window['$Hexagon'] = class $Hexagon {
             })
             if (avg_arr[i].i !== avg - 1) {
                 window.requestAnimationFrame(fn)
+            } else {
+                window.cancelAnimationFrame(fn)
+                index++
+                if (index !== num) {
+                    this.animation({
+                        index: index,
+                        now: next
+                    })
+                }
+                return
             }
             i++
         }
         window.requestAnimationFrame(fn)
-    }
-    setInterval (fn) {
-        let arr = this.data.raf_arr
-        const len = arr.length
-        arr[len] = {
-            'for'() {},
-            'animate': 0
-        }
-        arr[len].for = () => {
-            fn()
-            if (!arr[len]) {
-                return
-            }
-            arr[len].animate = this.raf(arr[len].for)
-        }
-        arr[len].animate = this.raf(arr[len].for)
-        return {
-            index: len,
-            obj: arr[len],
-            arr: arr
-        }
-    }
-    clearInterval (obj) {
-        let arr = this.data.raf_arr
-        if (!obj || !obj.arr) {
-            return
-        }
-        this.clearRaf(obj.obj.animate)
-        obj.obj.animate = obj.obj.for = null
-        delete arr[obj.index]
     }
 }
