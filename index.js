@@ -122,16 +122,22 @@ window['$Hexagon'] = class $Hexagon {
         const f = (obj) => {
             cxt.beginPath()
             cxt.moveTo(now.x, now.y)
-            cxt.strokeStyle = cxt.fillStyle = `rgba(${_color})`
+            cxt.shadowBlur = 1 // 模糊尺寸
             if (obj) {
                 // cxt.globalAlpha = 0.1
                 // console.log(`rgba(${_color}, ${obj.val})`)
-                cxt.strokeStyle = cxt.fillStyle = `rgba(0, 0, 0, ${obj.val})`
+                // `rgba(0, 0, 0, ${obj.val})`
+                cxt.shadowBlur = 5
+                // cxt.fillStyle = cxt.shadowColor = `rgba(0, 0, 0, ${obj.val})` // 颜色
+                cxt.shadowColor = `rgba(0, 0, 0, ${obj.val})` // 颜色
             } else {
                 // cxt.shadowOffsetX = 1 // 阴影Y轴偏移
                 // cxt.shadowOffsetY = 1 // 阴影X轴偏移
-                cxt.shadowBlur = 10 // 模糊尺寸
-                cxt.shadowColor = `rgba(${_color}, .5)` // 颜色
+                // cxt.shadowColor = `rgba(255, 255, 255, 1)` // 颜色
+                // cxt.shadowColor = cxt.fillStyle = `rgba(${_color})`
+                cxt.shadowColor = `rgba(${_color})`
+
+                // strokeStyle // 不画线 - 用阴影会更逼真
             }
             cxt.lineWidth = line_w
             cxt.lineCap = line_c
