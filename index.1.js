@@ -33,10 +33,8 @@ window['$Hexagon'] = class $Hexagon {
             centerY: el.height / 2,
             X: el.width,
             Y: el.height,
-            sum: 40, // 一共的数量
-            num: 60, // 单条线一共走的遍数
+            num: 15, // 单条线一共走的遍数
             avg: 12, // now到next的执行次数
-            num_now: 0, // 进行中的数量 - 不可配置
             line_l: 20, // 直线长度
             line_w: 1, // 直线粗细
             gc: 5, // 线条变黑的渐变程度
@@ -58,12 +56,11 @@ window['$Hexagon'] = class $Hexagon {
                 '1-4-x': e => ({ x: e.x + e.l, y: e.y, next: ['1', '4'] }),
                 '2-3-x': e => ({ x: e.x - e.l, y: e.y, next: ['2', '3'] })
             },
-            color: { // 目前只针对hsl色 - x变化
-                val: 'hsl(x, 50%, 50%)',
-                x: 1
-            }
+            color: ['rgb(30, 242, 40)']
         }
-        this.animation()
+        // setInterval(() => {
+            this.animation()
+        // }, 1000)
     }
     getEndXY ({x, y, next = ['1-4-x', '1-4-x']}) { // 求目标坐标
         const {
@@ -105,88 +102,152 @@ window['$Hexagon'] = class $Hexagon {
         })
         return arr
     }
-    drawRect (e) { // 点
+    drawLine (e) { // 画线
         const {
             cxt,
-            color,
+            line_c,
+            gc,
+            gc_q,
+            gc_s,
+            el,
+            line_w
         } = this.data
         const {
-            next
+            now,
+            next,
+            _color,
+            _gc,
         } = e
-        cxt.shadowBlur = 5
-        cxt.fillStyle = cxt.shadowColor = color.val.replace('x', color.x)
-        cxt.fillRect(next.x, next.y, 2.5, 2.5)
+        
+        
+        const f = (obj) => {
+            // cxt.moveTo(now.x, now.y)
+            // cxt.beginPath()
+            // cxt.moveTo(now.x, now.y)
+            if (obj) {
+                // cxt.moveTo(now.x, now.y)
+
+                // cxt.globalAlpha = 0.1
+                // console.log(`rgba(${_color}, ${obj.val})`)
+                // `rgba(0, 0, 0, ${obj.val})`
+                cxt.shadowBlur = 5
+                cxt.fillStyle = cxt.shadowColor = `rgba(0, 0, 0, ${obj.val})` // 颜色
+                // cxt.shadowColor = `rgba(0, 0, 0, ${obj.val})` // 颜色
+                // cxt.strokeStyle = `rgba(0, 0, 0, ${obj.val})`
+            } else {
+                cxt.shadowBlur = 1 // 模糊尺寸
+                // cxt.shadowOffsetX = 1 // 阴影Y轴偏移
+                // cxt.shadowOffsetY = 1 // 阴影X轴偏移
+                // cxt.shadowColor = `rgba(255, 255, 255, 1)` // 颜色
+                cxt.shadowColor = cxt.fillStyle = _color
+                // cxt.shadowColor = 'rgba(255, 255, 255, 1)'
+                
+                // cxt.shadowColor = `rgba(${_color}, .5)`
+
+                // cxt.strokeStyle = `rgba(${_color}, .5)` // 不画线 - 用阴影会更逼真
+            }
+            cxt.lineWidth = line_w
+            cxt.lineCap = line_c
+            cxt.lineTo(next.x, next.y)
+            cxt.stroke()
+            // 核心？
+            // cxt.fillStyle = 'rgba(0,0,0,.1)'
+            // cxt.fillRect(0, 0, el.width, el.height)
+
+            // setTimeout(() => {
+            //     cxt.shadowBlur = 0
+            //     cxt.fillStyle = 'gba(0, 0, 0, .04)'
+            //     cxt.fillRect(0, 0, el.width, el.height)
+            //     cxt.globalCompositeOperation = 'lighter'
+            // }, 1000)
+        }
+        if (_gc && _gc.is) {
+            setTimeout(() => {
+                f({
+                    val: 1 / gc * (_gc.i + 1)
+                })
+            }, gc_q + gc_s * (_gc.i + 1))
+            return
+        }
+        f()
+        // setTimeout(() => { // 神奇的bug动画
+        //     cxt.beginPath()
+        //     cxt.moveTo(now.x, now.y)
+        //     cxt.lineTo(next.x, next.y)
+        //     cxt.globalAlpha = .1
+        //     cxt.strokeStyle = cxt.fillStyle = 'red'
+        //     cxt.stroke()
+        // }, 1000)
+
     }
-    drawLine ({ index = 0, now, _color } = {}) { // 成线
-        let {
+    animation ({ index = 0, now, _color } = {}) { // 动画
+        const {
             centerX,
             centerY,
             avg,
             num,
+            gc,
             cxt,
+            color,
             line_l
         } = this.data
         if (!now || !now.x) {
+            // cxt.globalCompositeOperation = 'lighter'
             now = {
                 x: centerX - line_l * 2,
                 y: centerY
             }
+            // cxt.fillStyle = 'rgba(0, 0, 0, 0.4)'
+            // cxt.fillRect(0, 0, cxt.width, cxt.height)
+            cxt.beginPath()
+            cxt.moveTo(now.x, now.y)
+        }
+        if (!_color) {
+            _color = color[parseInt(Math.random() * color.length)]
         }
         let next = this.getEndXY(now) // 取得next坐标
         let avg_arr = this.getAvg(now, next) // 取得次数
         let i = 0
 
         let fn = () => {
-            this.drawRect({ // 点
-                next: avg_arr[i]
+            this.drawLine({ // 正常绘线
+                now: now,
+                next: avg_arr[i],
+                _color: _color
             })
+            // for (let j = 0; j < gc; j++) {
+            //     this.drawLine({
+            //         now: now,
+            //         next: avg_arr[i],
+            //         _color: _color,
+            //         _gc: {
+            //             is: true,
+            //             i: j
+            //         }
+            //     })
+            // }
             if (avg_arr[i].i !== avg - 1) {
                 window.requestAnimationFrame(fn)
             } else {
-                // 天女散花
-                cxt.fillRect(now.x + -Math.random() * 20, now.y + -Math.random() * 20, 2, 2)
-                cxt.fillRect(next.x + Math.random() * 20, next.y + Math.random() * 20, 2, 2)
                 window.cancelAnimationFrame(fn)
                 index++
                 if (index !== num) {
-                    this.drawLine({
+                    this.animation({
                         index: index,
                         now: next,
+                        // _color: color[_color].next
                     })
-                } else {
-                    --this.data.num_now
                 }
                 return
             }
             i++
         }
         window.requestAnimationFrame(fn)
-    }
-    animation () { // 动画
-        let {
-            cxt,
-            el,
-            color,
-        } = this.data
-
-        let d = new Date().getTime()
-        let fn = () => {
-            let n_d = new Date().getTime()
-            window.requestAnimationFrame(fn)
-            ++color.x
-            cxt.globalCompositeOperation = 'source-over' // 最上方的显示
-            cxt.shadowBlur = 0
-            cxt.fillStyle = 'rgba(0, 0, 0, .04)'
-            cxt.fillRect(0, 0, el.width, el.height)
-            cxt.globalCompositeOperation = 'lighter' // 点相交更亮
-            // console.log(new Date().getTime(), d)
-            // new Date来控制展示的间隔
-            if (this.data.num_now < this.data.sum && n_d - d > 500) {
-                this.drawLine()
-                d = n_d
-                ++this.data.num_now
-            }
-        }
-        fn()
+        // setTimeout(() => {
+        //     cxt.beginPath()
+        //     cxt.strokeStyle = 'black'
+        //     cxt.fillStyle = 'black'
+        //     window.requestAnimationFrame(fn)
+        // }, 500)
     }
 }

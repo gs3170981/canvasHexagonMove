@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,54 +10,80 @@
         html {
             background: black;
         }
+
         #canvas {
             border: 1px solid red;
         }
     </style>
 </head>
+
 <body>
     <canvas id="canvas" width="400" height="400"></canvas>
 </body>
 <script>
-    var canvas = document.querySelector('#canvas'),
-    ctx = canvas.getContext('2d');
-canvas.width = 400;
-canvas.height = 400;
-var backDom = document.createElement('canvas'),
-    backCtx = backDom.getContext('2d');
-backDom.width = canvas.width;
-backDom.height = canvas.height;
-// document.body.appendChild(backDom); //测试使用
-ctx.globalAlpha = 0.85; //关键
-function draw(options) {
-    backCtx.globalCompositeOperation = 'copy';
-    backCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath();
-    ctx.arc(options.x, options.y, options.r, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(7,120,249,1)';
-    ctx.fill();
-    ctx.drawImage( backDom, 0, 0, backDom.width, backDom.height);
-}
-var start = {
-    x: 25,
-    y: 25,
-    r: 10
-};
-var end = {
-    x: 300,
-    y: 300,
-    r: 10
-};
-function render() {
-    if (start.x < end.x && start.y < end.y) {
-        draw(start);
-        start.x += 5;
-        start.y += 5;
-        setTimeout(arguments.callee, 50);
+    function Ball(radius, color) {
+        this.x = 0;
+        this.y = 0;
+        this.radius = radius || 40;
+        this.rotation = 0;
+        this.scaleX = 1;
+        this.scaleY = 1;
+        this.color = color || '#ff0000';
+        this.strokeColor = '#000';
+        this.lineWidth = 1;
+        this.shadowBlur = 0;
+        this.shadowColor = '#ffffff';
+        //ball animation params
+        this.vx = 0; //x轴上的速度
+        this.vy = 0; //y轴上的速度
     }
-}
-render();
+
+    Ball.prototype.draw = function (context) {
+        context.save();
+        context.translate(this.x, this.y);
+        context.rotate(this.rotation);
+        context.scale(this.scaleX, this.scaleY);
+        context.fillStyle = this.color;
+        context.strokeStyle = this.strokeColor;
+        context.lineWidth = this.lineWidth;
+        context.shadowBlur = this.shadowBlur;
+        context.shadowColor = this.shadowColor;
+        context.beginPath();
+        context.arc(0, 0, this.radius, 0, Math.PI * 2, true);
+        context.fill();
+        if (this.lineWidth > 0) {
+            context.stroke();
+        }
+        context.restore();
+    };
+    var canvas = document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+    var width = canvas.width;
+    var height = canvas.height;
+    var angleX = 0;
+    var angleY = 0;
+    var range = 50;
+    var centerX = width / 2;
+    var centerY = height / 2;
+    var xSpeed = 0.05;
+    var ySpeed = 0.1;
+
+    // Ball对象的实现见文章末尾
+    var ball = new Ball(10);
+    ball.strokeColor = 'rgba(0,0,0,0)';
+
+    (function drawFrame() {
+        window.requestAnimationFrame(drawFrame);
+        // 重点！使用半透明的白色背景填充画布，从而实现想要的拖尾效果
+        context.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        context.fillRect(0, 0, width, height);
+
+        ball.x = centerX + Math.sin(angleX) * range;
+        ball.y = centerY + Math.sin(angleY) * range;
+        angleX += xSpeed;
+        angleY += ySpeed;
+        ball.draw(context);
+    })();
 </script>
+
 </html>
