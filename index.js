@@ -37,8 +37,8 @@ window['$Hexagon'] = class $Hexagon {
             avg: 12, // now到next的执行次数
             line_l: 20, // 直线长度
             line_w: 1, // 直线粗细
-            gc: 2, // 线条变黑的渐变程度
-            gc_s: 500, // 线条渐变程度的渐变间隔ms
+            gc: 5, // 线条变黑的渐变程度
+            gc_s: 300, // 线条渐变程度的渐变间隔ms
             gc_q: 1000, // 几ms后开始线条变黑
             angle: '60', // 角度
             line_c: 'round', // 直线更圆润
@@ -56,13 +56,13 @@ window['$Hexagon'] = class $Hexagon {
                 '1-4-x': e => ({ x: e.x + e.l, y: e.y, next: ['1', '4'] }),
                 '2-3-x': e => ({ x: e.x - e.l, y: e.y, next: ['2', '3'] })
             },
-            color: ['30, 242, 40'] // 请填写rgb
+            color: ['rgb(30, 242, 40)']
         }
-        // setInterval(() => {
+        setInterval(() => {
             this.animation()
-        // }, 1000)
+        }, 1000)
     }
-    getEndXY ({x, y, next = ['1-4-x', '2-3-x']}) { // 求目标坐标
+    getEndXY ({x, y, next = ['1-4-x', '1-4-x']}) { // 求目标坐标
         const {
             pos,
             coor,
@@ -109,6 +109,7 @@ window['$Hexagon'] = class $Hexagon {
             gc,
             gc_q,
             gc_s,
+            el,
             line_w
         } = this.data
         const {
@@ -120,29 +121,45 @@ window['$Hexagon'] = class $Hexagon {
         
         
         const f = (obj) => {
+            // cxt.moveTo(now.x, now.y)
             cxt.beginPath()
             cxt.moveTo(now.x, now.y)
-            cxt.shadowBlur = 1 // 模糊尺寸
             if (obj) {
+                // cxt.moveTo(now.x, now.y)
+
                 // cxt.globalAlpha = 0.1
                 // console.log(`rgba(${_color}, ${obj.val})`)
                 // `rgba(0, 0, 0, ${obj.val})`
                 cxt.shadowBlur = 5
-                // cxt.fillStyle = cxt.shadowColor = `rgba(0, 0, 0, ${obj.val})` // 颜色
-                cxt.shadowColor = `rgba(0, 0, 0, ${obj.val})` // 颜色
+                cxt.fillStyle = cxt.shadowColor = `rgba(0, 0, 0, ${obj.val})` // 颜色
+                // cxt.shadowColor = `rgba(0, 0, 0, ${obj.val})` // 颜色
+                // cxt.strokeStyle = `rgba(0, 0, 0, ${obj.val})`
             } else {
+                cxt.shadowBlur = 1 // 模糊尺寸
                 // cxt.shadowOffsetX = 1 // 阴影Y轴偏移
                 // cxt.shadowOffsetY = 1 // 阴影X轴偏移
                 // cxt.shadowColor = `rgba(255, 255, 255, 1)` // 颜色
-                // cxt.shadowColor = cxt.fillStyle = `rgba(${_color})`
-                cxt.shadowColor = `rgba(${_color})`
+                cxt.shadowColor = cxt.fillStyle = _color
+                // cxt.shadowColor = 'rgba(255, 255, 255, 1)'
+                
+                // cxt.shadowColor = `rgba(${_color}, .5)`
 
-                // strokeStyle // 不画线 - 用阴影会更逼真
+                // cxt.strokeStyle = `rgba(${_color}, .5)` // 不画线 - 用阴影会更逼真
             }
             cxt.lineWidth = line_w
             cxt.lineCap = line_c
             cxt.lineTo(next.x, next.y)
             cxt.stroke()
+            // 核心？
+            // cxt.fillStyle = 'rgba(0,0,0,.1)'
+            // cxt.fillRect(0, 0, el.width, el.height)
+
+            // setTimeout(() => {
+            //     cxt.shadowBlur = 0
+            //     cxt.fillStyle = 'gba(0, 0, 0, .04)'
+            //     cxt.fillRect(0, 0, el.width, el.height)
+            //     cxt.globalCompositeOperation = 'lighter'
+            // }, 1000)
         }
         if (_gc && _gc.is) {
             setTimeout(() => {
@@ -163,29 +180,29 @@ window['$Hexagon'] = class $Hexagon {
         // }, 1000)
 
     }
-    drawLine1 (e) {
-        const {
-            cxt,
-            line_c,
-            gc_q,
-            line_w
-        } = this.data
-        const {
-            now,
-            next,
-            _color
-        } = e
-        setTimeout(() => {
-            cxt.beginPath()
-            cxt.moveTo(now.x, now.y)
-            cxt.strokeStyle = cxt.fillStyle = 'black'
-            cxt.lineWidth = line_w
-            // cxt.globalAlpha = 0.1
-            cxt.lineCap = line_c
-            cxt.lineTo(next.x, next.y)
-            cxt.stroke()
-        }, gc_q)
-    }
+    // drawLine1 (e) {
+    //     const {
+    //         cxt,
+    //         line_c,
+    //         gc_q,
+    //         line_w
+    //     } = this.data
+    //     const {
+    //         now,
+    //         next,
+    //         _color
+    //     } = e
+    //     setTimeout(() => {
+    //         cxt.beginPath()
+    //         cxt.moveTo(now.x, now.y)
+    //         cxt.strokeStyle = cxt.fillStyle = 'black'
+    //         cxt.lineWidth = line_w
+    //         // cxt.globalAlpha = 0.1
+    //         cxt.lineCap = line_c
+    //         cxt.lineTo(next.x, next.y)
+    //         cxt.stroke()
+    //     }, gc_q)
+    // }
     animation ({ index = 0, now, _color } = {}) { // 动画
         const {
             centerX,
@@ -193,14 +210,18 @@ window['$Hexagon'] = class $Hexagon {
             avg,
             num,
             gc,
+            cxt,
             color,
             line_l
         } = this.data
         if (!now || !now.x) {
+            // cxt.globalCompositeOperation = 'lighter'
             now = {
                 x: centerX - line_l * 2,
                 y: centerY
             }
+            // cxt.beginPath()
+            // cxt.moveTo(now.x, now.y)
         }
         if (!_color) {
             _color = color[parseInt(Math.random() * color.length)]
@@ -215,11 +236,6 @@ window['$Hexagon'] = class $Hexagon {
                 next: avg_arr[i],
                 _color: _color
             })
-            // this.drawLine1({ // 
-            //     now: now,
-            //     next: avg_arr[i],
-            //     _color: _color
-            // })
             for (let j = 0; j < gc; j++) {
                 this.drawLine({
                     now: now,
