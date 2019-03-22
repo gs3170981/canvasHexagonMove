@@ -33,16 +33,13 @@ window['$Hexagon'] = class $Hexagon {
             centerY: el.height / 2,
             X: el.width,
             Y: el.height,
-            sum: 40, // 一共的数量
+            sum: 100, // 一共的数量
             num: 60, // 单条线一共走的遍数
             avg: 12, // now到next的执行次数
+            qc: 200, // 第一条线与第二条线显示的间隔速度
             num_now: 0, // 进行中的数量 - 不可配置
             line_l: 20, // 直线长度
             line_w: 1, // 直线粗细
-            gc: 5, // 线条变黑的渐变程度
-            gc_s: 300, // 线条渐变程度的渐变间隔ms
-            gc_q: 1000, // 几ms后开始线条变黑
-            angle: '60', // 角度
             line_c: 'round', // 直线更圆润
             pos: { // 角度
                 '60': {
@@ -50,6 +47,7 @@ window['$Hexagon'] = class $Hexagon {
                     cos: 0.5
                 }
             },
+            angle: '60', // 角度 - 跟pos相关，需要则自填写值
             coor: { // 方向 - 坐标系四域
                 '1': e => ({ x: e.x + e.xl, y: e.y - e.yl, next: ['2', '1-4-x'] }),
                 '2': e => ({ x: e.x - e.xl, y: e.y - e.yl, next: ['1', '2-3-x'] }),
@@ -166,6 +164,9 @@ window['$Hexagon'] = class $Hexagon {
         let {
             cxt,
             el,
+            X,
+            Y,
+            qc,
             color,
         } = this.data
 
@@ -177,11 +178,11 @@ window['$Hexagon'] = class $Hexagon {
             cxt.globalCompositeOperation = 'source-over' // 最上方的显示
             cxt.shadowBlur = 0
             cxt.fillStyle = 'rgba(0, 0, 0, .04)'
-            cxt.fillRect(0, 0, el.width, el.height)
+            cxt.fillRect(0, 0, X, Y)
             cxt.globalCompositeOperation = 'lighter' // 点相交更亮
             // console.log(new Date().getTime(), d)
             // new Date来控制展示的间隔
-            if (this.data.num_now < this.data.sum && n_d - d > 500) {
+            if (this.data.num_now < this.data.sum && n_d - d > qc) {
                 this.drawLine()
                 d = n_d
                 ++this.data.num_now

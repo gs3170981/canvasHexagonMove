@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <title>绘制心形相框</title>
+  <style>
+    #canvas {
+      border: 1px solid #aaaaaa;
+      display: block;
+      margin: 50px auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="canvas-warp">
+    <canvas id="canvas">
+      你的浏览器居然不支持Canvas？！赶快换一个吧！！
+    </canvas>
+    <!-- <img id="img" src="./img/snapshot.png"> -->
+  </div>
+  <script>
+    window.onload = function () {
+      var canvas = document.getElementById("canvas");
+      canvas.width = 800;
+      canvas.height = 600;
+      var context = canvas.getContext("2d");
+      context.fillStyle = "#FFF";
+      context.fillRect(0, 0, 800, 600);
+
+      context.beginPath();
+      context.moveTo(400, 260);
+      context.bezierCurveTo(450, 220, 450, 300, 400, 315);
+      context.bezierCurveTo(350, 300, 350, 220, 400, 260);
+      context.clip();
+      context.closePath();
+
+      var img = new Image();
+      img.src = "./img/snapshot.png";
+      img.onload = function () {
+        context.drawImage(img, 348, 240, 100, 100);
+      }
+    };
+  </script>
+</body>
+
+</html>
